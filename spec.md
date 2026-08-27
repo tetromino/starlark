@@ -2813,6 +2813,26 @@ a, b = 2, 3
 The same process for assigning a value to a target expression is used
 in `for` statements and in comprehension `for` clauses.
 
+#### Typed assignments
+
+A typed assignment statement may be viewed as syntactic sugar for a [var
+statement](#var-statements) immediately followed by a simple assignment
+statement; it informs the type checker of a newly-bound variable's type and
+assigns the variable an initial value:
+
+```text
+AssignStmt = identifier ':' TypeExpr '=' Expressions.
+```
+
+It is a static error for an assignment statement to (re)declare the type of a
+variable that has already been bound:
+
+```python
+def f():
+    x = 123
+    x: int = 456  # static error: type annotation on x may only appear at its first declaration
+```
+
 ### Augmented assignments
 
 An augmented assignment, which has the form `lhs op= rhs` updates the
@@ -2848,26 +2868,6 @@ statements but does not declare a new temporary variable `i`:
 ```python
 i = index()
 a[i] = a[i] * 2
-```
-
-### Typed assignments
-
-A typed assignment statement may be viewed as syntactic sugar for a [var
-statement](#var-statements) immediately followed by a simple assignment
-statement; it informs the type checker of a newly-bound variable's type and
-assigns the variable an initial value:
-
-```text
-AssignStmt = identifier ':' TypeExpr '=' Expressions.
-```
-
-It is a static error for an assignment statement to (re)declare the type of a
-variable that has already been bound:
-
-```python
-def f():
-    x = 123
-    x: int = 456  # static error: type annotation on x may only appear at its first declaration
 ```
 
 ### Function definitions
