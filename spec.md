@@ -3228,16 +3228,18 @@ TypeName = identifier
          | TypeName DotSuffix
          .
 
-TypeApplication = TypeName '[' [TypeArgument [',']] ']'.
+TypeApplication = TypeName '[' TypeArguments ']'.
 ```
 
 The *type arguments* of a type application is a non-empty sequence of type
 expressions, lists of type expressions, string-keyed dicts with type expression
 values, strings or integer literals, empty tuples, and/or the special *ellipsis*
-token(s) `...`; a trailing comma is allowed:
+token(s) `...`. For compatibility with subscript expression syntax, type
+arguments _cannot_ have a trailing comma.
 
 ```
-TypeArguments = [TypeArgument [',']]
+TypeArguments = TypeArgument
+              | TypeArgument ',' TypeArguments
               .
 
 TypeArgument = TypeExpr
@@ -5070,9 +5072,11 @@ TypeName = identifier
          | TypeName DotSuffix
          .
 
-TypeApplication = TypeName '[' [TypeArgument [',']] ']'.
+TypeApplication = TypeName '[' TypeArguments ']'.
 
-TypeArguments = [TypeArgument [',']].
+TypeArguments = TypeArgument
+              | TypeArgument ',' TypeArguments
+              .
 
 TypeArgument = TypeExpr
              | TypeList
