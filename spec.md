@@ -1537,9 +1537,15 @@ The sets of names bound in the file block and in the module block do not overlap
 it is an error for a load statement to bind the name of a global,
 or for a top-level statement to bind a name bound by a load statement.
 
-A file block contains a _function_ block for each top-level
+A file block contains a _function_ block for each non-generic top-level
 function, and a _comprehension_ block for each top-level comprehension.
-Bindings in either of these kinds of block,
+There is a _type parameter_ block for each type alias statement that takes
+type parameters; and for each generic function, a type parameter block
+with a function block nested in it (the type parameter block includes the
+type parameter list, and the function block includes everything that follows
+the type parameter list).
+
+Bindings in any of these 3 kinds of block,
 and in the file block itself, are called _local_.
 (In the example, the bindings for `e`, `f`, `g`, and `i` are all local.)
 Additional functions and comprehensions, and their blocks, may be
