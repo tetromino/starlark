@@ -1904,14 +1904,13 @@ PrimaryExpr = Operand
             | PrimaryExpr DotSuffix
             | PrimaryExpr CallSuffix
             | PrimaryExpr SubscriptSuffix
-            | CastExpr
-            | IsInstanceExpr
             .
 
 Operand = identifier
         | int | float | string | bytes
         | ListExpr | ListComp
         | DictExpr | DictComp
+        | CastExpr | IsInstanceExpr
         | '(' [Expressions] [,] ')'
         .
 
@@ -2817,15 +2816,16 @@ in `for` statements and in comprehension `for` clauses.
 
 A typed assignment statement may be viewed as syntactic sugar for a [var
 statement](#var-statements) immediately followed by a simple assignment
-statement; it informs the type checker of a newly-bound variable's type and
-assigns the variable an initial value:
+statement; it informs the type checker of a new variable's type and assigns the
+variable an initial value:
 
 ```text
 AssignStmt = identifier ':' TypeExpr '=' Expressions.
 ```
 
-It is a static error for an assignment statement to (re)declare the type of a
-variable that has already been bound:
+A variable may only be associated with a type at the point in code where it is
+bound. Thus, a var statement or a typed assignment statement may only be used
+on a new binding:
 
 ```python
 def f():
@@ -3201,6 +3201,18 @@ A load statement within a function is a static error.
 
 ## Type annotations
 
+Type annotations are used to inform static type checkers for Starlark. The
+semantics of type checking are not specified by this document, but are intended
+to be broadly similar to those of Mypy.
+
+Identifiers in type expressions are resolved statically, following the same
+rules as in value expressions.
+
+Type annotations described below are evaluated statically. However, most code
+(with the exception of the `...` ellipsis token) that may be parsed as a type
+expression may also be parsed as a value expression, and then evaluated
+dynamically.
+
 ### Type expressions
 
 Type expressions consist of one or more *type atoms* separated by the `|`
@@ -3215,14 +3227,22 @@ TypeExpr = TypeAtom
 Semantically, `|` in a type expression means "or" (a union type). For example,
 `int | float | None` denotes "integer or float or `None`".
 
-Type atoms can be plain *type names* (an identifier or a sequence of identifiers
-separated by `.` for namespacing), or *type applications* with type arguments in
-square brackets:
+A type atom can be a plain *type name* (an identifier or a sequence of
+identifiers separated by `.` for namespacing), a *type application* with type
+arguments in square brackets, or a *parenthesized tuple* of type expressions
+(or a single parenthesized type expression).
+
+The rules for parsing parenthesized type expressions and parenthesized tuples
+are identical to those for parsing parenthesized tuples and parenthesized
+expressions in value syntax.
 
 ```
 TypeAtom = TypeName
          | TypeApplication
+         | '(' [TypeExprs [',']] ')'
          .
+
+TypeExprs = TypeExpr {',' TypeExpr}.
 
 TypeName = identifier
          | TypeName DotSuffix
@@ -3233,9 +3253,11 @@ TypeApplication = TypeName '[' TypeArguments ']'.
 
 The *type arguments* of a type application is a non-empty sequence of type
 expressions, lists of type expressions, string-keyed dicts with type expression
-values, strings or integer literals, empty tuples, and/or the special *ellipsis*
-token(s) `...`. For compatibility with subscript expression syntax, type
-arguments _cannot_ have a trailing comma.
+values, strings or integer literals, and/or the special *ellipsis* token(s)
+`...`.
+
+For compatibility with subscript expression syntax, typearguments _cannot_
+have a trailing comma.
 
 ```
 TypeArguments = TypeArgument
@@ -3247,7 +3269,6 @@ TypeArgument = TypeExpr
              | TypeDict
              | string
              | int
-             | '(' ')'
              | '...'
              .
 
@@ -3315,8 +3336,9 @@ x: int
 y: list[int]
 ```
 
-It is a static error for a var statement to (re)declare the type of a variable
-that has already been bound:
+A variable may only be associated with a type at the point in code where it is
+bound. Thus, a var statement or a typed assignment statement may only be used
+on a new binding:
 
 ```python
 def f():
@@ -5004,14 +5026,13 @@ PrimaryExpr = Operand
             | PrimaryExpr DotSuffix
             | PrimaryExpr CallSuffix
             | PrimaryExpr SubscriptSuffix
-            | CastExpr
-            | IsInstanceExpr
             .
 
 Operand = identifier
         | int | float | string | bytes
         | ListExpr | ListComp
         | DictExpr | DictComp
+        | CastExpr | IsInstanceExpr
         | '(' [Expressions [',']] ')'
         .
 
@@ -5064,8 +5085,11 @@ TypeExpr = TypeAtom
          | TypeAtom '|' TypeExpr
          .
 
+TypeExprs = TypeExpr {',' TypeExpr}.
+
 TypeAtom = TypeName
          | TypeApplication
+         | '(' [TypeExprs [',']] ')'
          .
 
 TypeName = identifier
