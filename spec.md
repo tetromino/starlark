@@ -5113,7 +5113,6 @@ TypeArgument = TypeExpr
              | TypeDict
              | string
              | int
-             | '(' ')'
              | '...'
              .
 
